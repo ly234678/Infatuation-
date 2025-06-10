@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爱的告白</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffebee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            width: 500px;
+            animation: fadeIn 1s;
+        }
+        h1 {
+            color: #e91e63;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 25px;
+        }
+        .heart {
+            color: #e91e63;
+            font-size: 24px;
+            animation: beat 1s infinite alternate;
+            display: inline-block;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        #noBtn {
+            background-color: #9e9e9e;
+        }
+        #yesBtn:hover {
+            background-color: #c2185b;
+        }
+        #noBtn:hover {
+            background-color: #757575;
+        }
+        .hidden {
+            display: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f8f8f8;
+        }
+        .share-link {
+            margin-top: 20px;
+            word-break: break-all;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes beat {
+            to { transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="creatorView">
+        <h1>创建你的表白 <span class="heart">❤</span></h1>
+        <p>输入你心仪的人的名字，生成专属表白链接</p>
+        <input type="text" id="loverName" placeholder="输入TA的名字">
+        <button onclick="generateLink()">生成表白链接</button>
+        <div id="linkContainer" class="hidden">
+            <p>复制下面的链接发送给TA：</p>
+            <div class="share-link" id="shareLink"></div>
+            <p>当TA做出选择后，结果会显示在这里：</p>
+            <div class="result" id="resultDisplay">等待回应中...</div>
+        </div>
+    </div>
+    
+    <div class="container hidden" id="receiverView">
+        <h1>亲爱的<span id="displayName"></span> <span class="heart">❤</span></h1>
+        <p>从遇见你的那一刻起，我的世界就变得不一样了。</p>
+        <p>你的笑容像阳光一样温暖，你的声音是我最喜欢的旋律。</p>
+        <p>我想告诉你：<strong>我喜欢你</strong>，比你能想象的还要多。</p>
+        <div class="btn-group">
+            <button id="yesBtn" onclick="respond(true)">我愿意</button>
+            <button id="noBtn" onclick="respond(false)">再考虑下</button>
+        </div>
+    </div>
+    
+    <div class="container hidden" id="responseView">
+        <h1><span class="heart">❤</span> 谢谢你的回应 <span class="heart">❤</span></h1>
+        <p id="responseText"></p>
+        <button onclick="location.reload()">返回</button>
+    </div>
+    
+    <script>
+        // 检查URL参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const nameParam = urlParams.get('to');
+        const choiceParam = urlParams.get('choice');
+        const fromParam = urlParams.get('from');
+        
+        // 如果是接收者查看页面
+        if (nameParam && !choiceParam) {
+            document.getElementById('creatorView').classList.add('hidden');
+            document.getElementById('receiverView').classList.remove('hidden');
+            document.getElementById('displayName').textContent = nameParam;
+        }
+        // 如果是创建者查看结果
+        else if (fromParam && choiceParam) {
+            document.getElementById('creatorView').classList.add('hidden');
+            document.getElementById('receiverView').classList.add('hidden');
+            document.getElementById('responseView').classList.remove('hidden');
+            
+            const responseText = choiceParam === 'true' 
+                ? `好消息！${nameParam}接受了你的表白！🎉` 
+                : `${nameParam}还需要时间考虑...`;
+            
+            document.getElementById('responseText').textContent = responseText;
+        }
+        
+        // 生成分享链接
+        function generateLink() {
+            const name = document.getElementById('loverName').value.trim();
+            if (!name) {
+                alert('请输入名字');
+                return;
+            }
+            
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('to', name);
+            
+            document.getElementById('shareLink').textContent = currentUrl.toString();
+            document.getElementById('linkContainer').classList.remove('hidden');
+            
+            // 存储名字到本地，用于检查结果
+            localStorage.setItem('waitingForResponse', name);
+        }
+        
+        // 回应表白
+        function respond(choice) {
+            const name = urlParams.get('to');
+            if (!name) return;
+            
+            // 构建结果URL
+            const resultUrl = new URL(window.location.href);
+            resultUrl.searchParams.set('from', 'creator');
+            resultUrl.searchParams.set('choice', choice);
+            
+            // 显示回应
+            document.getElementById('receiverView').classList.add('hidden');
+            document.getElementById('responseView').classList.remove('hidden');
+            
+            const responseText = choice 
+                ? `我也喜欢你！让我们一起创造美好的回忆吧！❤` 
+                : `谢谢你的喜欢，但我还需要一些时间考虑...`;
+            
+            document.getElementById('responseText').textContent = responseText;
+            
+            // 检查是否有创建者在等待结果
+            checkForCreator(name, choice, resultUrl.toString());
+        }
+        
+        // 检查是否有创建者在等待结果
+        function checkForCreator(name, choice, resultUrl) {
+            const waitingName = localStorage.getItem('waitingForResponse');
+            if (waitingName && waitingName === name) {
+                // 在实际应用中，这里应该发送到服务器或使用其他方式通知创建者
+                // 这里只是简单地在控制台打印
+                console.log(`通知创建者: ${name}的选择是 ${choice ? '愿意' : '不愿意'}`);
+                console.log(`创建者可以访问: ${resultUrl}`);
+                
+                // 在实际应用中，你可能需要使用:
+                // 1. WebSocket实时通知
+                // 2. 服务器轮询
+                // 3. 邮件/短信通知
+                // 4. 让创建者手动刷新结果页面
+            }
+        }
+        
+        // 定期检查结果（简化版，实际应用中应该使用更可靠的方法）
+        function checkResponse() {
+            const waitingName = localStorage.getItem('waitingForResponse');
+            if (waitingName && fromParam === 'creator') {
+                // 这里应该从服务器获取实际结果
+                // 这里只是演示
+                if (choiceParam) {
+                    const resultText = choiceParam === 'true' 
+                        ? `好消息！${nameParam}接受了你的表白！🎉` 
+                        : `${nameParam}还需要时间考虑...`;
+                    document.getElementById('resultDisplay').textContent = resultText;
+                }
+            }
+        }
+        
+        // 每5秒检查一次结果（简化版）
+        setInterval(checkResponse, 5000);
+    </script>
+</body>
+</html>
